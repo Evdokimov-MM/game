@@ -115,4 +115,67 @@ for(let x of [-w/2, w/2]){
 
 /* перекрытие */
 elements.push(
-  line(-w/2,h1,-d
+  line(-w/2,h1,-d/2, w/2,h1,-d/2),
+  line(w/2,h1,-d/2, w/2,h1,d/2),
+  line(w/2,h1,d/2, -w/2,h1,d/2),
+  line(-w/2,h1,d/2, -w/2,h1,-d/2)
+);
+
+/* второй этаж */
+elements.push(
+  line(-w/2,h2,-d/2, w/2,h2,-d/2),
+  line(w/2,h2,-d/2, w/2,h2,d/2),
+  line(w/2,h2,d/2, -w/2,h2,d/2),
+  line(-w/2,h2,d/2, -w/2,h2,-d/2)
+);
+
+/* крыша двускатная */
+elements.push(
+  line(-w/2,h2,-d/2, 0,roofH,0),
+  line(w/2,h2,-d/2, 0,roofH,0),
+  line(w/2,h2,d/2, 0,roofH,0),
+  line(-w/2,h2,d/2, 0,roofH,0)
+);
+
+/* конек */
+elements.push(
+  line(-w/2,h2,-d/2, w/2,h2,-d/2),
+  line(0,roofH,0, 0,roofH, -d/2)
+);
+
+/* диагонали конструктив */
+elements.push(
+  line(-w/2,0,-d/2, w/2,h1,d/2),
+  line(w/2,0,-d/2, -w/2,h1,d/2)
+);
+
+let step = 0;
+
+document.addEventListener("click", ()=>{
+  if(step < elements.length){
+    elements[step].visible = true;
+    step++;
+    if(step === elements.length){
+      document.getElementById("status").innerText =
+        "Дом построен. Страницу — нет 🙂";
+      document.getElementById("cta").style.opacity = 1;
+    }
+  }
+});
+
+function animate(){
+  requestAnimationFrame(animate);
+  house.rotation.y += 0.003;
+  renderer.render(scene,camera);
+}
+animate();
+
+window.addEventListener("resize", ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>
