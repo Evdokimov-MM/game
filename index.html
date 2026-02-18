@@ -2,52 +2,44 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<title>404 Blueprint</title>
+<title>404 Architectural Blueprint</title>
 
 <style>
-body {
-  margin: 0;
-  background: #000;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
+body{
+  margin:0;
+  background:#000;
+  overflow:hidden;
+  font-family:Arial, sans-serif;
 }
 
-#scene {
-  position: fixed;
-  inset: 0;
+#overlay{
+  position:fixed;
+  bottom:50px;
+  left:50%;
+  transform:translateX(-50%);
+  text-align:center;
+  color:white;
 }
 
-#overlay {
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-  color: white;
+#cta{
+  opacity:0;
+  transition:.4s;
 }
 
-#cta {
-  opacity: 0;
-  transition: opacity 0.5s ease;
-}
-
-#cta a {
-  background: white;
-  color: black;
-  padding: 10px 20px;
-  text-decoration: none;
-  border-radius: 4px;
+#cta a{
+  background:white;
+  color:black;
+  padding:10px 22px;
+  border-radius:4px;
+  text-decoration:none;
 }
 </style>
 </head>
-
 <body>
-
-<div id="scene"></div>
 
 <div id="overlay">
   <h1>Страница не найдена</h1>
-  <p id="status">Нажмите, чтобы начать строительство</p>
+  <p id="status">Нажмите, чтобы собрать дом</p>
   <div id="cta">
     <a href="/">На главную</a>
   </div>
@@ -61,119 +53,87 @@ scene.background = new THREE.Color(0x000000);
 
 const camera = new THREE.PerspectiveCamera(
   45,
-  window.innerWidth / window.innerHeight,
+  window.innerWidth/window.innerHeight,
   0.1,
   1000
 );
-camera.position.set(0, 10, 20);
-camera.lookAt(0, 4, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.getElementById("scene").appendChild(renderer.domElement);
+camera.position.set(25,18,30);
+camera.lookAt(0,8,0);
 
-const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth,window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const lineMaterial = new THREE.LineBasicMaterial({color:0xffffff});
 
 const house = new THREE.Group();
 scene.add(house);
 
-function line(x1,y1,z1,x2,y2,z2){
-  const geometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(x1,y1,z1),
-    new THREE.Vector3(x2,y2,z2)
-  ]);
-  const l = new THREE.Line(geometry, material);
-  l.visible = false;
-  house.add(l);
-  return l;
+function addBox(w,h,d,x,y,z){
+  const geo = new THREE.BoxGeometry(w,h,d);
+  const edges = new THREE.EdgesGeometry(geo);
+  const line = new THREE.LineSegments(edges,lineMaterial);
+  line.position.set(x,y,z);
+  line.visible=false;
+  house.add(line);
+  return line;
 }
 
-const elements = [];
+const parts=[];
 
-/* размеры */
-const w = 10;
-const d = 8;
-const h1 = 4;
-const h2 = 7;
-const roofH = 10;
+/* основной объём */
+parts.push(addBox(20,12,14,0,6,0));
 
-/* фундамент */
-elements.push(
-  line(-w/2,0,-d/2, w/2,0,-d/2),
-  line(w/2,0,-d/2, w/2,0,d/2),
-  line(w/2,0,d/2, -w/2,0,d/2),
-  line(-w/2,0,d/2, -w/2,0,-d/2)
-);
+/* второй уровень */
+parts.push(addBox(12,8,10,2,16,0));
 
-/* вертикальные стойки */
-for(let x of [-w/2, w/2]){
-  for(let z of [-d/2, d/2]){
-    elements.push(line(x,0,z,x,h1,z));
-    elements.push(line(x,h1,z,x,h2,z));
-  }
-}
+/* террасная рама */
+parts.push(addBox(16,6,10,14,6,0));
 
-/* перекрытие */
-elements.push(
-  line(-w/2,h1,-d/2, w/2,h1,-d/2),
-  line(w/2,h1,-d/2, w/2,h1,d/2),
-  line(w/2,h1,d/2, -w/2,h1,d/2),
-  line(-w/2,h1,d/2, -w/2,h1,-d/2)
-);
+/* плита перед домом */
+parts.push(addBox(30,1,20,0,-0.5,0));
 
-/* второй этаж */
-elements.push(
-  line(-w/2,h2,-d/2, w/2,h2,-d/2),
-  line(w/2,h2,-d/2, w/2,h2,d/2),
-  line(w/2,h2,d/2, -w/2,h2,d/2),
-  line(-w/2,h2,d/2, -w/2,h2,-d/2)
-);
+/* ступени */
+parts.push(addBox(10,1,6,-12,0.5,0));
+parts.push(addBox(8,1,4,-12,1.5,0));
 
-/* крыша двускатная */
-elements.push(
-  line(-w/2,h2,-d/2, 0,roofH,0),
-  line(w/2,h2,-d/2, 0,roofH,0),
-  line(w/2,h2,d/2, 0,roofH,0),
-  line(-w/2,h2,d/2, 0,roofH,0)
-);
+/* внутренний проём (стеклянный фасад) */
+parts.push(addBox(8,10,1,0,6,7));
 
-/* конек */
-elements.push(
-  line(-w/2,h2,-d/2, w/2,h2,-d/2),
-  line(0,roofH,0, 0,roofH, -d/2)
-);
+let step=0;
 
-/* диагонали конструктив */
-elements.push(
-  line(-w/2,0,-d/2, w/2,h1,d/2),
-  line(w/2,0,-d/2, -w/2,h1,d/2)
-);
-
-let step = 0;
-
-document.addEventListener("click", ()=>{
-  if(step < elements.length){
-    elements[step].visible = true;
+document.addEventListener("click",()=>{
+  if(step<parts.length){
+    parts[step].visible=true;
     step++;
-    if(step === elements.length){
-      document.getElementById("status").innerText =
+    if(step===parts.length){
+      document.getElementById("status").innerText=
         "Дом построен. Страницу — нет 🙂";
-      document.getElementById("cta").style.opacity = 1;
+      document.getElementById("cta").style.opacity=1;
     }
   }
 });
 
+/* лёгкое живое движение камеры */
+document.addEventListener("mousemove",(e)=>{
+  const x=(e.clientX/window.innerWidth-0.5)*2;
+  const y=(e.clientY/window.innerHeight-0.5)*2;
+  camera.position.x=25+x*2;
+  camera.position.y=18-y*2;
+  camera.lookAt(0,8,0);
+});
+
 function animate(){
   requestAnimationFrame(animate);
-  house.rotation.y += 0.003;
   renderer.render(scene,camera);
 }
 animate();
 
-window.addEventListener("resize", ()=>{
-  camera.aspect = window.innerWidth/window.innerHeight;
+window.addEventListener("resize",()=>{
+  camera.aspect=window.innerWidth/window.innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setSize(window.innerWidth,window.innerHeight);
 });
 </script>
 
