@@ -1,51 +1,51 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <title>404 Construction</title>
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<meta charset="UTF-8" />
+<title>404 Construction</title>
 
-    #overlay {
-      position: absolute;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      color: white;
-      z-index: 10;
-    }
+<style>
+body {
+  margin: 0;
+  background: #000;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
 
-    #overlay h1 {
-      margin: 0 0 10px;
-      font-weight: 500;
-    }
+#scene {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+}
 
-    #overlay p {
-      margin: 0 0 20px;
-      opacity: 0.8;
-    }
+#overlay {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: white;
+  z-index: 10;
+}
 
-    #cta {
-      opacity: 0;
-      transition: opacity 0.5s ease;
-    }
+#cta {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
 
-    #cta a {
-      color: black;
-      background: white;
-      padding: 10px 20px;
-      text-decoration: none;
-      border-radius: 4px;
-    }
-  </style>
+#cta a {
+  background: white;
+  color: black;
+  padding: 10px 20px;
+  text-decoration: none;
+  border-radius: 4px;
+}
+</style>
 </head>
+
 <body>
+
+<div id="scene"></div>
 
 <div id="overlay">
   <h1>Страница не найдена</h1>
@@ -58,6 +58,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r152/three.min.js"></script>
 
 <script>
+const container = document.getElementById("scene");
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
@@ -71,7 +73,7 @@ camera.position.set(8, 6, 10);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
+container.appendChild(renderer.domElement);
 
 const material = new THREE.MeshBasicMaterial({
   color: 0xffffff,
