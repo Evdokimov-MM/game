@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<title>404 Construction</title>
+<title>404 Blueprint</title>
 
 <style>
 body {
@@ -15,7 +15,6 @@ body {
 #scene {
   position: fixed;
   inset: 0;
-  z-index: 1;
 }
 
 #overlay {
@@ -25,17 +24,6 @@ body {
   transform: translateX(-50%);
   text-align: center;
   color: white;
-  z-index: 10;
-}
-
-#overlay h1 {
-  margin: 0 0 10px;
-  font-weight: 500;
-}
-
-#overlay p {
-  margin: 0 0 20px;
-  opacity: 0.8;
 }
 
 #cta {
@@ -79,64 +67,88 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000
 );
-
-camera.position.set(0, 6, 14);
-camera.lookAt(0, 3, 0);
+camera.position.set(0, 8, 18);
+camera.lookAt(0, 4, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 container.appendChild(renderer.domElement);
 
-const material = new THREE.MeshBasicMaterial({
-  color: 0xffffff,
-  wireframe: true
-});
+const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
 
-/* 🔥 Группа дома */
 const house = new THREE.Group();
 scene.add(house);
 
 const elements = [];
 
-function createBox(w, h, d, y) {
-  const geo = new THREE.BoxGeometry(w, h, d);
-  const mesh = new THREE.Mesh(geo, material);
-  mesh.position.y = y;
-  mesh.visible = false;
-  house.add(mesh);
-  elements.push(mesh);
+function addEdges(geometry) {
+  const edges = new THREE.EdgesGeometry(geometry);
+  const line = new THREE.LineSegments(edges, lineMaterial);
+  line.visible = false;
+  house.add(line);
+  elements.push(line);
 }
 
-createBox(6, 0.4, 6, 0);
-createBox(5.5, 3, 5.5, 1.7);
-createBox(6, 0.3, 6, 3.3);
-createBox(5, 2.5, 5, 4.7);
+/* ФУНДАМЕНТ */
+addEdges(new THREE.BoxGeometry(10, 0.4, 8));
 
-const roofGeo = new THREE.ConeGeometry(4, 2, 4);
-const roof = new THREE.Mesh(roofGeo, material);
-roof.position.y = 6.5;
-roof.rotation.y = Math.PI / 4;
-roof.visible = false;
-house.add(roof);
-elements.push(roof);
+/* ПЕРВЫЙ ЭТАЖ */
+addEdges(new THREE.BoxGeometry(9, 4, 7));
 
-/* Центрируем дом */
-house.position.set(0, 0, 0);
+/* ПЕРЕКРЫТИЕ */
+addEdges(new THREE.BoxGeometry(10, 0.3, 8));
+
+/* ВТОРОЙ ЭТАЖ */
+addEdges(new THREE.BoxGeometry(8, 3.5, 6));
+
+/* ДВУСКАТНАЯ КРЫША */
+const roofShape = new THREE.Shape();
+roofShape.moveTo(-4, 0);
+roofShape.lineTo(4, 0);
+roofShape.lineTo(0, 3);
+roofShape.lineTo(-4, 0);
+
+const extrudeSettings = {
+  depth: 6,
+  bevelEnabled: false
+};
+
+const roofGeo = new THREE.ExtrudeGeometry(roofShape, extrudeSettings);
+roofGeo.rotateX(Math.PI / 2);
+roofGeo.translate(0, 8, -3);
+
+addEdges(roofGeo);
+
+/* ДИАГОНАЛИ (чертёжный эффект) */
+function addDiagonal(y, width, depth) {
+  const geometry = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-width/2, y, -depth/2),
+    new THREE.Vector3(width/2, y+2, depth/2),
+  ]);
+  const line = new THREE.Line(geometry, lineMaterial);
+  line.visible = false;
+  house.add(line);
+  elements.push(line);
+}
+
+addDiagonal(0, 9, 7);
+addDiagonal(4, 8, 6);
 
 let step = 0;
 
-const stepTexts = [
+const texts = [
   "Закладываем фундамент...",
-  "Возводим стены...",
-  "Укладываем перекрытие...",
-  "Добавляем второй этаж...",
-  "Финализируем кровлю..."
+  "Возводим первый этаж...",
+  "Добавляем перекрытие...",
+  "Строим второй этаж...",
+  "Формируем крышу...",
+  "Добавляем конструктив..."
 ];
 
-document.addEventListener("click", function () {
+document.addEventListener("click", () => {
   if (step < elements.length) {
     elements[step].visible = true;
-    document.getElementById("status").innerText = stepTexts[step];
+    document.getElementById("status").innerText = texts[step];
     step++;
 
     if (step === elements.length) {
@@ -149,12 +161,12 @@ document.addEventListener("click", function () {
 
 function animate() {
   requestAnimationFrame(animate);
-  house.rotation.y += 0.002;
+  house.rotation.y += 0.003;
   renderer.render(scene, camera);
 }
 animate();
 
-window.addEventListener("resize", function () {
+window.addEventListener("resize", () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
